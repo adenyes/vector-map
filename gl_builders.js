@@ -1,4 +1,6 @@
 var GL = GL || {};
+var GLRenderer = GLRenderer || {};
+GLRenderer.debug = false;
 
 GL.buildPolygons = function buildPolygons (polygons, feature, layer, style, tile, vertex_data)
 {
@@ -156,25 +158,23 @@ GL.buildPolylines = function buildPolylines (lines, feature, layer, style, tile,
     }
 
     // Line center - debugging
-    // if (GLRenderer.debug) {
-    //     var num_lines = lines.length;
-    //     for (var ln=0; ln < num_lines; ln++) {
-    //         var line = lines[ln];
+    if (GLRenderer.debug) {
+        var num_lines = lines.length;
+        for (var ln=0; ln < num_lines; ln++) {
+            var line = lines[ln];
 
-    //         for (var p=0; p < line.length - 1; p++) {
-    //             // Point A to B
-    //             var pa = line[p];
-    //             var pb = line[p+1];
+            for (var p=0; p < line.length - 1; p++) {
+                // Point A to B
+                var pa = line[p];
+                var pb = line[p+1];
 
-    //             vertex_lines.push(
-    //                 pa[0], pa[1], z + 0.001,
-    //                 0, 0, 1, 1.0, 0, 0,
-    //                 pb[0], pb[1], z + 0.001,
-    //                 0, 0, 1, 1.0, 0, 0
-    //             );
-    //         }
-    //     };
-    // }
+                vertex_lines.push(
+                    pa[0], pa[1], z + 0.001, 0, 0, 1, 1.0, 0, 0,
+                    pb[0], pb[1], z + 0.001, 0, 0, 1, 1.0, 0, 0
+                );
+            }
+        };
+    }
 
     // Build triangles
     var vertices = [];
@@ -282,9 +282,10 @@ GL.buildPolylines = function buildPolylines (lines, feature, layer, style, tile,
         var denom = (b1 * a2) - (a1 * b2);
 
         // Find the intersection point
-        var intersect_outer;
         var line_debug = null;
-        if (denom > 0.01) {
+        if (Math.abs(denom) > 0.01) {
+            var intersect_outer, intersect_inner;
+
             intersect_outer = [
                 ((c1 * b2) - (b1 * c2)) / denom,
                 ((c1 * a2) - (a1 * c2)) / denom
@@ -301,49 +302,65 @@ GL.buildPolylines = function buildPolylines (lines, feature, layer, style, tile,
                     joint[1] + intersect_outer[1] * miter_len_max
                 ]
             }
+
+            intersect_inner = [
+                (joint[0] - intersect_outer[0]) + joint[0],
+                (joint[1] - intersect_outer[1]) + joint[1]
+            ];
+
+            vertices.push(
+                intersect_inner, intersect_outer, pa_inner[0],
+                pa_inner[0], intersect_outer, pa_outer[0],
+
+                pb_inner[1], pb_outer[1], intersect_inner,
+                intersect_inner, pb_outer[1], intersect_outer
+            );
         }
         else {
             // Line segments are parallel, use the first outer line segment as join instead
             line_debug = 'parallel';
-            intersect_outer = pa_outer[1];
+            pa_inner[1] = pb_inner[0];
+            pa_outer[1] = pb_outer[0];
+
+            vertices.push(
+                pa_inner[1], pa_outer[1], pa_inner[0],
+                pa_inner[0], pa_outer[1], pa_outer[0],
+
+                pb_inner[1], pb_outer[1], pb_inner[0],
+                pb_inner[0], pb_outer[1], pb_outer[0]
+            );
         }
 
-        var intersect_inner = [
-            (joint[0] - intersect_outer[0]) + joint[0],
-            (joint[1] - intersect_outer[1]) + joint[1]
-        ];
+        // Extruded inner/outer edges - debugging
+        if (GLRenderer.debug) {
+            vertex_lines.push(
+                pa_inner[0][0], pa_inner[0][1], z + 0.001, 0, 0, 1, 0, 1.0, 0,
+                pa_inner[1][0], pa_inner[1][1], z + 0.001, 0, 0, 1, 0, 1.0, 0,
 
-        vertices.push(
-            intersect_inner, intersect_outer, pa_inner[0],
-            pa_inner[0], intersect_outer, pa_outer[0],
+                pb_inner[0][0], pb_inner[0][1], z + 0.001, 0, 0, 1, 0, 1.0, 0,
+                pb_inner[1][0], pb_inner[1][1], z + 0.001, 0, 0, 1, 0, 1.0, 0,
 
-            pb_inner[1], pb_outer[1], intersect_inner,
-            intersect_inner, pb_outer[1], intersect_outer
-        );
+                pa_outer[0][0], pa_outer[0][1], z + 0.001, 0, 0, 1, 0, 1.0, 0,
+                pa_outer[1][0], pa_outer[1][1], z + 0.001, 0, 0, 1, 0, 1.0, 0,
 
-        // Extruded segments, no intersection/joint - debugging
-        // vertices.push(
-        //     pa_inner[1], intersect_outer, pa_inner[0],
-        //     pa_inner[0], intersect_outer, pa_outer[0],
+                pb_outer[0][0], pb_outer[0][1], z + 0.001, 0, 0, 1, 0, 1.0, 0,
+                pb_outer[1][0], pb_outer[1][1], z + 0.001, 0, 0, 1, 0, 1.0, 0,
 
-        //     pb_inner[1], pb_outer[1], pb_inner[0],
-        //     pb_inner[0], pb_outer[1], intersect_outer
-        // );
+                pa_inner[0][0], pa_inner[0][1], z + 0.001, 0, 0, 1, 0, 1.0, 0,
+                pa_outer[0][0], pa_outer[0][1], z + 0.001, 0, 0, 1, 0, 1.0, 0,
 
-        // Line outer edge - debugging
-        // vertex_lines.push(
-        //     pa_outer[0][0], pa_outer[0][1], z + 0.001,
-        //     0, 0, 1, 0, 1.0, 0,
-        //     pa_outer[1][0], pa_outer[1][1], z + 0.001,
-        //     0, 0, 1, 0, 1.0, 0,
-        //     pb_outer[0][0], pb_outer[0][1], z + 0.001,
-        //     0, 0, 1, 0, 1.0, 0,
-        //     pb_outer[1][0], pb_outer[1][1], z + 0.001,
-        //     0, 0, 1, 0, 1.0, 0
-        // );
+                pa_inner[1][0], pa_inner[1][1], z + 0.001, 0, 0, 1, 0, 1.0, 0,
+                pa_outer[1][0], pa_outer[1][1], z + 0.001, 0, 0, 1, 0, 1.0, 0,
 
-        // if (GLRenderer.debug && line_debug) {
-        if (debug && line_debug) {
+                pb_inner[0][0], pb_inner[0][1], z + 0.001, 0, 0, 1, 0, 1.0, 0,
+                pb_outer[0][0], pb_outer[0][1], z + 0.001, 0, 0, 1, 0, 1.0, 0,
+
+                pb_inner[1][0], pb_inner[1][1], z + 0.001, 0, 0, 1, 0, 1.0, 0,
+                pb_outer[1][0], pb_outer[1][1], z + 0.001, 0, 0, 1, 0, 1.0, 0
+            );
+        }
+
+        if (GLRenderer.debug && line_debug) {
             var dcolor;
             if (line_debug == 'parallel') {
                 console.log("!!! lines are parallel !!!");
