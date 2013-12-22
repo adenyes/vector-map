@@ -26,16 +26,16 @@ this.addEventListener('message', function (event) {
                 var feature = tile.layers[layer.name].features[f];
 
                 if (feature.geometry.type == 'Polygon') {
-                    GL.buildPolygons([feature.geometry.coordinates], feature, layer, style, tile, triangles);
+                    GLRenderer.buildPolygons([feature.geometry.coordinates], feature, layer, style, tile, triangles);
                 }
                 else if (feature.geometry.type == 'MultiPolygon') {
-                    GL.buildPolygons(feature.geometry.coordinates, feature, layer, style, tile, triangles);
+                    GLRenderer.buildPolygons(feature.geometry.coordinates, feature, layer, style, tile, triangles);
                 }
                 else if (feature.geometry.type == 'LineString') {
-                    GL.buildPolylines([feature.geometry.coordinates], feature, layer, style, tile, triangles, lines);
+                    GLRenderer.buildPolylines([feature.geometry.coordinates], feature, layer, style, tile, triangles, lines);
                 }
                 else if (feature.geometry.type == 'MultiLineString') {
-                    GL.buildPolylines(feature.geometry.coordinates, feature, layer, style, tile, triangles, lines);
+                    GLRenderer.buildPolylines(feature.geometry.coordinates, feature, layer, style, tile, triangles, lines);
                 }
             }
         }

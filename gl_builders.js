@@ -1,8 +1,6 @@
-var GL = GL || {};
 var GLRenderer = GLRenderer || {};
-GLRenderer.debug = false;
 
-GL.buildPolygons = function buildPolygons (polygons, feature, layer, style, tile, vertex_data)
+GLRenderer.buildPolygons = function GLRendererBuildPolygons (polygons, feature, layer, style, tile, vertex_data)
 {
     // To ensure layers draw in order, offset z coordinate by one centimeter per layer
     // TODO: use glPolygonOffset instead of modifying z coord in geom? or store as separate field that doesn't affect y coord in vertex shader
@@ -140,7 +138,7 @@ GL.buildPolygons = function buildPolygons (polygons, feature, layer, style, tile
 };
 
 // Build tessellated triangles for a polyline
-GL.buildPolylines = function buildPolylines (lines, feature, layer, style, tile, vertex_data, vertex_lines)
+GLRenderer.buildPolylines = function GLRendererBuildPolylines (lines, feature, layer, style, tile, vertex_data, vertex_lines)
 {
     // To ensure layers draw in order, offset z coordinate by one centimeter per layer
     // TODO: use glPolygonOffset instead of modifying z coord in geom? or store as separate field that doesn't affect y coord in vertex shader
@@ -408,7 +406,7 @@ GL.buildPolylines = function buildPolylines (lines, feature, layer, style, tile,
 };
 
 // Build native GL lines for a polyline
-GL.buildLines = function buildLines (lines, feature, layer, style, tile, vertex_data)
+GLRenderer.buildLines = function GLRendererBuildLines (lines, feature, layer, style, tile, vertex_data)
 {
     // To ensure layers draw in order, offset z coordinate by one centimeter per layer
     // TODO: use glPolygonOffset instead of modifying z coord in geom? or store as separate field that doesn't affect y coord in vertex shader
