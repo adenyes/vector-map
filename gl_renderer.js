@@ -53,22 +53,7 @@ GLRenderer.prototype.init = function GLRendererInit ()
 
     var renderer = this;
     this.workers.forEach(function(worker) {
-        worker.addEventListener('message', function(event) {
-            var triangles = event.data.triangles;
-            var lines = event.data.lines;
-            var key = event.data.key;
-
-            // Create GL geometry objects
-            renderer.tiles[key].gl_geometry = [];
-            if (triangles.length > 0) {
-                renderer.tiles[key].gl_geometry.push(new GLTriangles(renderer.gl, renderer.program, triangles));
-            }
-            if (lines.length > 0) {
-                renderer.tiles[key].gl_geometry.push(new GLLines(renderer.gl, renderer.program, lines, { line_width: 1 }));
-            }
-            renderer.tiles[key].geometry_count = renderer.tiles[key].gl_geometry.reduce(function(sum, geom) { return sum + geom.geometry_count; }, 0);
-            // console.log("created " + this.tiles[tile.key].geometry_count + " primitives for tile " + tile.key);
-        });
+        worker.addEventListener('message', renderer.tileWorkerCompleted.bind(renderer));
     });
 };
 
@@ -140,6 +125,26 @@ GLRenderer.prototype.initInputHandlers = function GLRendererInitInputHandlers ()
     document.addEventListener('keyup', function (event) {
         gl_renderer.key = null;
     });
+};
+
+// Called when a web worker completes processing for a single tile
+GLRenderer.prototype.tileWorkerCompleted = function (event)
+{
+    var renderer = this;
+    var triangles = event.data.triangles;
+    var lines = event.data.lines;
+    var key = event.data.key;
+
+    // Create GL geometry objects
+    renderer.tiles[key].gl_geometry = [];
+    if (triangles.length > 0) {
+        renderer.tiles[key].gl_geometry.push(new GLTriangles(renderer.gl, renderer.program, triangles));
+    }
+    if (lines.length > 0) {
+        renderer.tiles[key].gl_geometry.push(new GLLines(renderer.gl, renderer.program, lines, { line_width: 1 }));
+    }
+    renderer.tiles[key].geometry_count = renderer.tiles[key].gl_geometry.reduce(function(sum, geom) { return sum + geom.geometry_count; }, 0);
+    // console.log("created " + this.tiles[tile.key].geometry_count + " primitives for tile " + tile.key);
 };
 
 GLRenderer.prototype.addTile = function GLRendererAddTile (tile, tileDiv)
