@@ -146,8 +146,8 @@ GLRenderer.prototype.tileWorkerCompleted = function (event)
     }
     tile.geometry_count = tile.gl_geometry.reduce(function(sum, geom) { return sum + geom.geometry_count; }, 0);
 
+    tile.debug = event.data.debug;
     tile.debug.geometries = tile.geometry_count;
-    tile.debug.features = event.data.num_features;
     tile.debug.geom_ratio = (tile.debug.geometries / tile.debug.features).toFixed(1);
     renderer.printDebugForTile(tile);
 };
@@ -157,15 +157,16 @@ GLRenderer.prototype.addTile = function GLRendererAddTile (tile, tileDiv)
     // Hand off feature data to worker for geometry construction
     this.workers[this.next_worker].postMessage({
         layers: this.layers.map(function(layer) {
-            return { name:
-                layer.name, number:
-                layer.number
+            return { 
+                name: layer.name, 
+                number: layer.number
             };
         }),
         tile: {
             key: tile.key,
             coords: tile.coords,
-            layers: tile.layers
+            layers: tile.layers,
+            debug: tile.debug
         }
     });
     this.next_worker = (this.next_worker + 1) % this.workers.length;

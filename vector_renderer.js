@@ -56,7 +56,7 @@ VectorRenderer.prototype.loadTile = function (coords, div)
         // Mercator projection for geometry and bounds
         tile.min = Geo.metersForTile(tile.coords);
         tile.max = Geo.metersForTile({ x: tile.coords.x + 1, y: tile.coords.y + 1, z: tile.coords.z });
-        renderer.projectTile(tile);
+        // renderer.projectTile(tile); // moved to web worker
 
         tile.loading = false;
         tile.loaded = true;
