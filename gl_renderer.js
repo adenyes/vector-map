@@ -145,11 +145,11 @@ GLRenderer.prototype.tileWorkerCompleted = function (event)
         tile.gl_geometry.push(new GLLines(renderer.gl, renderer.program, lines, { line_width: 1 }));
     }
     tile.geometry_count = tile.gl_geometry.reduce(function(sum, geom) { return sum + geom.geometry_count; }, 0);
+
     tile.debug.geometries = tile.geometry_count;
     tile.debug.features = event.data.num_features;
     tile.debug.geom_ratio = (tile.debug.geometries / tile.debug.features).toFixed(1);
-
-    // console.log("created " + this.tiles[tile.key].geometry_count + " primitives for tile " + tile.key);
+    renderer.printDebugForTile(tile);
 };
 
 GLRenderer.prototype.addTile = function GLRendererAddTile (tile, tileDiv)
