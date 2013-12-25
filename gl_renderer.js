@@ -134,16 +134,21 @@ GLRenderer.prototype.tileWorkerCompleted = function (event)
     var triangles = event.data.triangles;
     var lines = event.data.lines;
     var key = event.data.key;
+    var tile = renderer.tiles[key];
 
     // Create GL geometry objects
-    renderer.tiles[key].gl_geometry = [];
+    tile.gl_geometry = [];
     if (triangles.length > 0) {
-        renderer.tiles[key].gl_geometry.push(new GLTriangles(renderer.gl, renderer.program, triangles));
+        tile.gl_geometry.push(new GLTriangles(renderer.gl, renderer.program, triangles));
     }
     if (lines.length > 0) {
-        renderer.tiles[key].gl_geometry.push(new GLLines(renderer.gl, renderer.program, lines, { line_width: 1 }));
+        tile.gl_geometry.push(new GLLines(renderer.gl, renderer.program, lines, { line_width: 1 }));
     }
-    renderer.tiles[key].geometry_count = renderer.tiles[key].gl_geometry.reduce(function(sum, geom) { return sum + geom.geometry_count; }, 0);
+    tile.geometry_count = tile.gl_geometry.reduce(function(sum, geom) { return sum + geom.geometry_count; }, 0);
+    tile.debug.geometries = tile.geometry_count;
+    tile.debug.features = event.data.num_features;
+    tile.debug.geom_ratio = (tile.debug.geometries / tile.debug.features).toFixed(1);
+
     // console.log("created " + this.tiles[tile.key].geometry_count + " primitives for tile " + tile.key);
 };
 

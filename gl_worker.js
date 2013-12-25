@@ -14,6 +14,7 @@ this.addEventListener('message', function (event) {
     var layer, style;
     var triangles = [];
     var lines = [];
+    var num_features = 0;
 
     // Build raw geometry arrays
     for (var ln=0; ln < layers.length; ln++) {
@@ -21,8 +22,9 @@ this.addEventListener('message', function (event) {
         style = styles[layer.name] || {};
 
         if (tile.layers[layer.name] != null) {
-            var num_features = tile.layers[layer.name].features.length;
-            for (var f=0; f < num_features; f++) {
+            var num_layer_features = tile.layers[layer.name].features.length;
+            num_features += num_layer_features;
+            for (var f=0; f < num_layer_features; f++) {
                 var feature = tile.layers[layer.name].features[f];
 
                 if (feature.geometry.type == 'Polygon') {
@@ -44,5 +46,5 @@ this.addEventListener('message', function (event) {
     triangles = new Float32Array(triangles);
     lines = new Float32Array(lines);
 
-    this.postMessage({ key: tile.key, triangles: triangles, lines: lines }, [triangles.buffer, lines.buffer]);
+    this.postMessage({ key: tile.key, num_features: num_features, triangles: triangles, lines: lines }, [triangles.buffer, lines.buffer]);
 });
